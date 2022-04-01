@@ -16,11 +16,11 @@ terraform {
     }
   required_version = "~> 1.0"
 
-    cloud {
+   backend "remote" {
     organization = "slopeit"
 
     workspaces {
-      name = "demo-gitops"
+      name = "demo-github-cttions"
     }
   }
 }
