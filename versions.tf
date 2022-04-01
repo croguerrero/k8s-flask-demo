@@ -27,6 +27,14 @@ terraform {
   }
 
   required_version = ">= 0.14"
+  
+  backend "remote" {
+    organization = "slopeit"
+
+    workspaces {
+      name = "demo-gitops
+    }
+  }
 }
 
 
