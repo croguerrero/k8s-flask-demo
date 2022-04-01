@@ -9,14 +9,9 @@ terraform {
       version = "3.0.1"
     }
   }
-  
-  kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.0.1"
-    }
   required_version = "~> 1.0"
 
-   backend "remote" {
+  backend "remote" {
     organization = "slopeit"
 
     workspaces {
@@ -40,11 +35,11 @@ resource "aws_instance" "web" {
 
   user_data = <<-EOF
               #!/bin/bash
-	            sleep 120
-	            sudo apt-get update
-	            git clone https://github.com/croguerrero/personalweb.git
+	      sleep 120
+	      sudo apt-get update
+	      git clone https://github.com/croguerrero/personalweb.git
               cd personalweb
-	            sh installdocker.sh
+	      sh installdocker.sh
               EOF
 }
 
@@ -59,5 +54,5 @@ resource "aws_security_group" "web-sg" {
 }
 
 output "web-address" {
-  value = "${aws_instance.web.public_dns}:8080"
+  value = "${aws_instance.web.public_dns}:80"
 }
