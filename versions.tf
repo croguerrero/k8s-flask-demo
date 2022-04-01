@@ -33,12 +33,13 @@ terraform {
       name = "demo-gitops"
     }
   }
-}
-
-provider "aws" {
+  provider "aws" {
   region = "us-east-1"
 }
 
   required_version = ">= 0.14"
 }
+}
+
+
 
