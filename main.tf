@@ -1,15 +1,30 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "3.26.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.0.1"
+    }
+  }
+  required_version = "~> 1.0"
+
+  backend "remote" {
+    organization = "slopeit"
+
+    workspaces {
+      name = "demo-gitops"
+    }
+  }
+}
+
 provider "aws" {
   region = "us-east-1"
 }
 
-backend "remote" {
-    organization = "slopeit"
 
-    workspaces {
-      name = "demo-github-cttions"
-    }
-  }
-}
 
 data "aws_eks_cluster" "cluster" {
   name = module.eks.cluster_id
