@@ -25,20 +25,8 @@ terraform {
       version = ">= 2.0.1"
     }
   }
-  
-  backend "remote" {
-    organization = "slopeit"
-
-    workspaces {
-      name = "demo-gitops"
-    }
-  }
-  provider "aws" {
-  region = "us-east-1"
-}
 
   required_version = ">= 0.14"
-}
 }
 
 
