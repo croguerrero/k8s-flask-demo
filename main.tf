@@ -24,101 +24,42 @@ provider "aws" {
   region = "us-east-1"
 }
 
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  version         = "17.24.0"
+  cluster_name    = local.cluster_name
+  cluster_version = "1.20"
+  subnets         = module.vpc.private_subnets
 
-resource "aws_iam_role" "eks_cluster" {
-  name = "eks-cluster"
+  vpc_id = module.vpc.vpc_id
 
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
+  workers_group_defaults = {
+    root_volume_type = "gp2"
+  }
+
+  worker_groups = [
     {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks_cluster.name
-}
-
-resource "aws_eks_cluster" "aws_eks" {
-  name     = "eks_cluster_tuto"
-  role_arn = aws_iam_role.eks_cluster.arn
-
-  vpc_config {
-    subnet_ids = ["subnet-4d0d3324", "subnet-b3a8f9c8"]
-  }
-
-  tags = {
-    Name = "EKS_tuto"
-  }
-}
-
-resource "aws_iam_role" "eks_nodes" {
-  name = "eks-node-group-tuto"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
+      name                          = "worker-group-1"
+      instance_type                 = "t2.small"
+      additional_userdata           = "echo foo bar"
+      additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
+      asg_desired_capacity          = 2
+    },
     {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
+      name                          = "worker-group-2"
+      instance_type                 = "t2.medium"
+      additional_userdata           = "echo foo bar"
+      additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
+      asg_desired_capacity          = 1
+    },
   ]
 }
-POLICY
+
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_id
 }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks_nodes.name
-}
-
-resource "aws_eks_node_group" "node" {
-  cluster_name    = aws_eks_cluster.aws_eks.name
-  node_group_name = "node_tuto"
-  node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = ["<subnet-1>", "<subnet-2>"]
-
-  scaling_config {
-    desired_size = 1
-    max_size     = 3
-    min_size     = 2
-  }
-
-  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
-  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
-  depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
-  ]
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_id
 }
 
