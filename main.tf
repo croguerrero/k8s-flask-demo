@@ -9,6 +9,11 @@ terraform {
       version = "3.0.1"
     }
   }
+  
+  kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.0.1"
+    }
   required_version = "~> 1.0"
 
   backend "remote" {
