@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: flaskweb
-          image: croguerrero/python:latest ##Add your own image
+          image: croguerrero/python:v1 ##Add your own image
           ports:
             - containerPort: 5000
 ---
